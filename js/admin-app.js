@@ -17,23 +17,31 @@ const menuItems = [
 
 // ===== INIT =====
 async function init() {
-  const auth = await checkAuth('admin');
-  if (!auth) return;
-  currentUser = auth.user;
-  currentProfile = auth.profile;
-  
-  document.getElementById('userName').textContent = currentProfile?.full_name || 'Admin';
-  document.getElementById('userAvatar').textContent = (currentProfile?.full_name || 'A').charAt(0);
-  
-  renderSidebar();
-  navigate('dashboard');
-  hideLoading();
+  try {
+    const auth = await checkAuth('admin');
+    if (!auth) {
+      hideLoading();
+      return;
+    }
+    currentUser = auth.user;
+    currentProfile = auth.profile || {};
+    
+    document.getElementById('userName').textContent = currentProfile?.full_name || 'Admin';
+    document.getElementById('userAvatar').textContent = (currentProfile?.full_name || 'A').charAt(0);
+    
+    renderSidebar();
+    navigate('dashboard');
+  } catch (err) {
+    console.error('Init error:', err);
+  } finally {
+    hideLoading();
+  }
 }
 
 function renderSidebar() {
   const nav = document.getElementById('sidebarNav');
   nav.innerHTML = menuItems.map(item => `
-    <a href="#" onclick="navigate('${item.id}');return false" class="${activeTab === item.id ? 'active' : ''}" id="nav-${item.id}">
+    <a href="#" onclick="navigate('${item.id}');return false" class="${activeTab === item.id ? 'active' : ''}">
       <span>${item.icon}</span> ${item.label}
     </a>
   `).join('');
@@ -48,12 +56,16 @@ function navigate(tab) {
   activeTab = tab;
   renderSidebar();
   document.getElementById('pageTitle').textContent = menuItems.find(m => m.id === tab)?.label || tab;
-  
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebarOverlay').classList.remove('open');
   
-  const pages = { dashboard: renderDashboard, students: renderStudents, attendance: renderAttendance, assignments: renderAssignments, grades: renderGrades, materials: renderMaterials, announcements: renderAnnouncements, gallery: renderGallery, calendar: renderCalendar };
-  (pages[tab] || renderDashboard)();
+  try {
+    const pages = { dashboard: renderDashboard, students: renderStudents, attendance: renderAttendance, assignments: renderAssignments, grades: renderGrades, materials: renderMaterials, announcements: renderAnnouncements, gallery: renderGallery, calendar: renderCalendar };
+    (pages[tab] || renderDashboard)();
+  } catch (err) {
+    console.error('Navigate error:', err);
+    document.getElementById('mainContent').innerHTML = '<div class="card text-center p-6"><p class="text-muted">Terjadi error. Coba refresh halaman.</p></div>';
+  }
 }
 
 // ===== DASHBOARD =====
@@ -61,39 +73,48 @@ async function renderDashboard() {
   const mc = document.getElementById('mainContent');
   mc.innerHTML = '<div class="spinner" style="margin:40px auto"></div>';
   
-  const [studentsRes, attendanceRes, assignmentsRes] = await Promise.all([
-    db.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'student'),
-    db.from('attendance').select('id', { count: 'exact', head: true }).eq('status', 'present'),
-    db.from('assignments').select('id', { count: 'exact', head: true }),
-  ]);
+  try {
+    const [studentsRes, attendanceRes, assignmentsRes] = await Promise.all([
+      db.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student'),
+      db.from('attendance').select('*', { count: 'exact', head: true }).eq('status', 'present'),
+      db.from('assignments').select('*', { count: 'exact', head: true }),
+    ]);
 
-  mc.innerHTML = `
-    <div class="grid grid-4 mb-6">
-      <div class="card stat-card card-glow"><div class="stat-icon" style="background:rgba(99,102,241,0.15);color:#818cf8">👥</div><div class="stat-value text-gradient">${studentsRes.count || 0}</div><div class="stat-label">Total Siswa</div></div>
-      <div class="card stat-card card-glow"><div class="stat-icon" style="background:rgba(16,185,129,0.15);color:#34d399">✅</div><div class="stat-value text-gradient">${attendanceRes.count || 0}</div><div class="stat-label">Hadir Hari Ini</div></div>
-      <div class="card stat-card card-glow"><div class="stat-icon" style="background:rgba(59,130,246,0.15);color:#60a5fa">📝</div><div class="stat-value text-gradient">${assignmentsRes.count || 0}</div><div class="stat-label">Total Tugas</div></div>
-      <div class="card stat-card card-glow"><div class="stat-icon" style="background:rgba(245,158,11,0.15);color:#fbbf24">🛡️</div><div class="stat-value text-gradient">1</div><div class="stat-label">Admin</div></div>
-    </div>
-    <div class="grid grid-2">
-      <div class="card">
-        <h3 class="font-bold mb-4">⚡ Aksi Cepat</h3>
-        <div class="grid grid-2 gap-2">
-          <button class="btn btn-outline" onclick="navigate('students')">👥 Tambah Siswa</button>
-          <button class="btn btn-outline" onclick="navigate('attendance')">✅ Input Absensi</button>
-          <button class="btn btn-outline" onclick="navigate('assignments')">📝 Buat Tugas</button>
-          <button class="btn btn-outline" onclick="navigate('grades')">🏆 Input Nilai</button>
-          <button class="btn btn-outline" onclick="navigate('announcements')">📢 Pengumuman</button>
-          <button class="btn btn-outline" onclick="navigate('gallery')">🖼️ Upload Foto</button>
+    mc.innerHTML = `
+      <div class="card mb-6" style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(168,85,247,0.1));border-color:rgba(99,102,241,0.2)">
+        <h2 class="text-2xl font-bold mb-1">Selamat Datang, <span class="text-gradient">${currentProfile?.full_name || 'Admin'}</span> 🛡️</h2>
+        <p class="text-muted text-sm">Super Admin Panel - X-5 SMAN 1 Purbalingga</p>
+      </div>
+      <div class="grid grid-4 mb-6">
+        <div class="card stat-card card-glow"><div class="stat-icon" style="background:rgba(99,102,241,0.15);color:#818cf8">👥</div><div class="stat-value text-gradient">${studentsRes.count || 0}</div><div class="stat-label">Total Siswa</div></div>
+        <div class="card stat-card card-glow"><div class="stat-icon" style="background:rgba(16,185,129,0.15);color:#34d399">✅</div><div class="stat-value text-gradient">${attendanceRes.count || 0}</div><div class="stat-label">Hadir Hari Ini</div></div>
+        <div class="card stat-card card-glow"><div class="stat-icon" style="background:rgba(59,130,246,0.15);color:#60a5fa">📝</div><div class="stat-value text-gradient">${assignmentsRes.count || 0}</div><div class="stat-label">Total Tugas</div></div>
+        <div class="card stat-card card-glow"><div class="stat-icon" style="background:rgba(245,158,11,0.15);color:#fbbf24">🛡️</div><div class="stat-value text-gradient">1</div><div class="stat-label">Admin</div></div>
+      </div>
+      <div class="grid grid-2">
+        <div class="card">
+          <h3 class="font-bold mb-4">⚡ Aksi Cepat</h3>
+          <div class="grid grid-2 gap-2">
+            <button class="btn btn-outline" onclick="navigate('students')">👥 Tambah Siswa</button>
+            <button class="btn btn-outline" onclick="navigate('attendance')">✅ Input Absensi</button>
+            <button class="btn btn-outline" onclick="navigate('assignments')">📝 Buat Tugas</button>
+            <button class="btn btn-outline" onclick="navigate('grades')">🏆 Input Nilai</button>
+            <button class="btn btn-outline" onclick="navigate('announcements')">📢 Pengumuman</button>
+            <button class="btn btn-outline" onclick="navigate('gallery')">🖼️ Upload Foto</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="font-bold mb-4">ℹ️ Informasi</h3>
+          <p class="text-sm text-muted mb-2">Selamat datang di Admin Panel X-5 SMAN 1 Purbalingga.</p>
+          <p class="text-sm text-muted mb-2">Gunakan menu di sidebar untuk mengelola berbagai aspek kelas.</p>
+          <p class="text-sm text-muted">Email: <strong>${currentUser?.email || '-'}</strong></p>
         </div>
       </div>
-      <div class="card">
-        <h3 class="font-bold mb-4">ℹ️ Informasi</h3>
-        <p class="text-sm text-muted mb-2">Selamat datang di Admin Panel X-5 SMAN 1 Purbalingga.</p>
-        <p class="text-sm text-muted mb-2">Gunakan menu di sidebar untuk mengelola berbagai aspek kelas.</p>
-        <p class="text-sm text-muted">Email: <strong>${currentUser?.email}</strong></p>
-      </div>
-    </div>
-  `;
+    `;
+  } catch (err) {
+    console.error('Dashboard error:', err);
+    mc.innerHTML = '<div class="card text-center p-6"><p class="text-muted">Gagal memuat dashboard. Coba refresh.</p></div>';
+  }
 }
 
 // ===== STUDENTS =====
@@ -108,7 +129,7 @@ async function renderStudents() {
       <p class="text-muted text-sm">Total: ${students?.length || 0} siswa</p>
       <button class="btn btn-primary" onclick="showStudentModal()">+ Tambah Siswa</button>
     </div>
-    <div class="grid grid-3" id="studentsGrid">
+    <div class="grid grid-3">
       ${(students || []).map(s => `
         <div class="card card-glow">
           <div class="flex items-center gap-3 mb-3">
@@ -193,10 +214,9 @@ async function renderAttendance() {
   mc.innerHTML = `
     <div class="flex items-center justify-between mb-4" style="flex-wrap:wrap;gap:12px">
       <div><p class="font-bold">Absensi Tanggal: ${formatDate(today)}</p><p class="text-sm text-muted">${students?.length || 0} siswa</p></div>
-      <input type="date" id="attDate" value="${today}" class="input" style="width:auto" onchange="renderAttendance()">
       <button class="btn btn-primary" onclick="saveAllAttendance()">💾 Simpan Semua</button>
     </div>
-    <div class="flex flex-col gap-2" id="attList">
+    <div class="flex flex-col gap-2">
       ${(students || []).map(s => `
         <div class="card" style="padding:12px 16px">
           <div class="flex items-center gap-3" style="flex-wrap:wrap">
@@ -211,6 +231,7 @@ async function renderAttendance() {
         </div>
       `).join('')}
     </div>
+    ${(!students || students.length === 0) ? '<div class="card text-center p-6"><p class="text-muted">Belum ada siswa. Tambahkan siswa dulu.</p></div>' : ''}
   `;
 }
 
@@ -223,8 +244,8 @@ function setAtt(studentId, status, btn) {
 }
 
 async function saveAllAttendance() {
-  const date = document.getElementById('attDate')?.value || new Date().toISOString().split('T')[0];
-  const records = Object.entries(tempAttendance).map(([student_id, status]) => ({ student_id, date, status }));
+  const today = new Date().toISOString().split('T')[0];
+  const records = Object.entries(tempAttendance).map(([student_id, status]) => ({ student_id, date: today, status }));
   if (records.length === 0) return showToast('Pilih status minimal 1 siswa!', 'error');
   
   const { error } = await db.from('attendance').upsert(records, { onConflict: 'student_id,date' });
@@ -300,6 +321,7 @@ async function renderGrades() {
   ]);
   
   const typeLabels = { daily: 'Harian', assignment: 'Tugas', mid_semester: 'UTS', final_semester: 'UAS' };
+  window._studentsList = students || [];
   
   mc.innerHTML = `
     <div class="flex items-center justify-between mb-4"><p class="text-muted text-sm">${grades?.length||0} nilai</p><button class="btn btn-primary" onclick="showGradeModal()">+ Input Nilai</button></div>
@@ -321,8 +343,6 @@ async function renderGrades() {
     </div>
     ${(!grades||grades.length===0)?'<div class="card text-center p-6 mt-4"><p class="text-muted">Belum ada nilai</p></div>':''}
   `;
-  
-  window._studentsList = students || [];
 }
 
 function showGradeModal() {
@@ -354,7 +374,7 @@ async function saveGrade() {
   closeModal(); renderGrades();
 }
 
-// ===== GENERIC HELPERS =====
+// ===== MATERIALS =====
 async function renderMaterials() {
   const mc = document.getElementById('mainContent');
   mc.innerHTML = '<div class="spinner" style="margin:40px auto"></div>';
@@ -393,6 +413,7 @@ async function saveMaterial(id) {
   closeModal(); renderMaterials();
 }
 
+// ===== ANNOUNCEMENTS =====
 async function renderAnnouncements() {
   const mc = document.getElementById('mainContent');
   mc.innerHTML = '<div class="spinner" style="margin:40px auto"></div>';
@@ -432,6 +453,7 @@ async function saveAnnouncement(id) {
   closeModal(); renderAnnouncements();
 }
 
+// ===== GALLERY =====
 async function renderGallery() {
   const mc = document.getElementById('mainContent');
   mc.innerHTML = '<div class="spinner" style="margin:40px auto"></div>';
@@ -440,7 +462,7 @@ async function renderGallery() {
     <div class="flex items-center justify-between mb-4"><p class="text-muted text-sm">${data?.length||0} item</p><button class="btn btn-primary" onclick="showGalleryModal()">+ Upload</button></div>
     <div class="grid grid-3">${(data||[]).map(g=>`
       <div class="card" style="padding:0;overflow:hidden">
-        <div style="aspect-ratio:1;background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(168,85,247,0.2));display:flex;align-items:center;justify-content:center;font-size:48px">🖼️</div>
+        <div style="aspect-ratio:1;background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(168,85,247,0.2));display:flex;align-items:center;justify-content:center;font-size:48px;overflow:hidden">${g.media_url?`<img src="${g.media_url}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='🖼️'">`:'🖼️'}</div>
         <div style="padding:12px"><p class="text-sm font-medium truncate">${g.title}</p><span class="badge badge-outline text-xs mt-1">${g.media_type}</span>
         <button class="btn btn-ghost btn-sm w-full mt-2" style="color:var(--danger)" onclick="deleteItem('gallery','${g.id}','Item galeri')">🗑️ Hapus</button></div>
       </div>
@@ -470,6 +492,7 @@ async function saveGalleryItem() {
   closeModal(); renderGallery();
 }
 
+// ===== CALENDAR =====
 async function renderCalendar() {
   const mc = document.getElementById('mainContent');
   mc.innerHTML = '<div class="spinner" style="margin:40px auto"></div>';
@@ -513,6 +536,7 @@ async function saveEvent() {
   closeModal(); renderCalendar();
 }
 
+// ===== DELETE HELPER =====
 async function deleteItem(table, id, label) {
   if (!confirm(`Hapus ${label} ini?`)) return;
   const { error } = await db.from(table).delete().eq('id', id);
@@ -535,11 +559,6 @@ function showModal(title, content, onLoad) {
 }
 
 function closeModal() { document.getElementById('modalContainer').innerHTML = ''; }
-
-function formatShortDate(dateStr) {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-}
 
 // ===== START =====
 init();
