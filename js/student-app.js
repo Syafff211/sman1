@@ -54,10 +54,10 @@ async function renderDashboard() {
   mc.innerHTML = '<div class="spinner" style="margin:40px auto"></div>';
   const sid = currentProfile?.id;
   const [attRes, assignRes, gradeRes, annRes] = await Promise.all([
-    supabase.from('attendance').select('status').eq('student_id', sid),
-    supabase.from('assignments').select('*').order('due_date').limit(3),
-    supabase.from('grades').select('score').eq('student_id', sid),
-    supabase.from('announcements').select('*').order('created_at',{ascending:false}).limit(3),
+    db.from('attendance').select('status').eq('student_id', sid),
+    db.from('assignments').select('*').order('due_date').limit(3),
+    db.from('grades').select('score').eq('student_id', sid),
+    db.from('announcements').select('*').order('created_at',{ascending:false}).limit(3),
   ]);
 
   const totalAtt = attRes.data?.length || 0;
@@ -105,7 +105,7 @@ async function renderAttendance() {
   const mc = document.getElementById('mainContent');
   mc.innerHTML = '<div class="spinner" style="margin:40px auto"></div>';
   const sid = currentProfile?.id;
-  const { data } = await supabase.from('attendance').select('*').eq('student_id', sid).order('date', { ascending: false });
+  const { data } = await db.from('attendance').select('*').eq('student_id', sid).order('date', { ascending: false });
   const total = data?.length || 0;
   const present = data?.filter(a=>a.status==='present').length||0;
   const sick = data?.filter(a=>a.status==='sick').length||0;
@@ -137,7 +137,7 @@ async function renderAttendance() {
 async function renderAssignments() {
   const mc = document.getElementById('mainContent');
   mc.innerHTML = '<div class="spinner" style="margin:40px auto"></div>';
-  const { data } = await supabase.from('assignments').select('*').order('due_date');
+  const { data } = await db.from('assignments').select('*').order('due_date');
   mc.innerHTML = `
     <h2 class="text-xl font-bold mb-4">📝 Daftar Tugas</h2>
     <div class="grid grid-2">${(data||[]).map(a=>`
@@ -155,7 +155,7 @@ async function renderAssignments() {
 async function renderMaterials() {
   const mc = document.getElementById('mainContent');
   mc.innerHTML = '<div class="spinner" style="margin:40px auto"></div>';
-  const { data } = await supabase.from('materials').select('*').order('created_at', { ascending: false });
+  const { data } = await db.from('materials').select('*').order('created_at', { ascending: false });
   mc.innerHTML = `
     <h2 class="text-xl font-bold mb-4">📚 Materi Pembelajaran</h2>
     <div class="grid grid-3">${(data||[]).map(m=>`
@@ -170,7 +170,7 @@ async function renderMaterials() {
 async function renderGrades() {
   const mc = document.getElementById('mainContent');
   mc.innerHTML = '<div class="spinner" style="margin:40px auto"></div>';
-  const { data } = await supabase.from('grades').select('*').eq('student_id', currentProfile?.id).order('created_at', { ascending: false });
+  const { data } = await db.from('grades').select('*').eq('student_id', currentProfile?.id).order('created_at', { ascending: false });
   const avg = data?.length>0 ? (data.reduce((s,g)=>s+g.score,0)/data.length).toFixed(1) : 0;
   const typeLabels = { daily:'Harian', assignment:'Tugas', mid_semester:'UTS', final_semester:'UAS' };
 
@@ -192,7 +192,7 @@ async function renderGrades() {
 async function renderAnnouncements() {
   const mc = document.getElementById('mainContent');
   mc.innerHTML = '<div class="spinner" style="margin:40px auto"></div>';
-  const { data } = await supabase.from('announcements').select('*').order('is_pinned', { ascending: false }).order('created_at', { ascending: false });
+  const { data } = await db.from('announcements').select('*').order('is_pinned', { ascending: false }).order('created_at', { ascending: false });
   mc.innerHTML = `
     <h2 class="text-xl font-bold mb-4">📢 Pengumuman</h2>
     <div class="flex flex-col gap-3">${(data||[]).map(a=>`
@@ -207,7 +207,7 @@ async function renderAnnouncements() {
 async function renderGallery() {
   const mc = document.getElementById('mainContent');
   mc.innerHTML = '<div class="spinner" style="margin:40px auto"></div>';
-  const { data } = await supabase.from('gallery').select('*').order('created_at', { ascending: false });
+  const { data } = await db.from('gallery').select('*').order('created_at', { ascending: false });
   mc.innerHTML = `
     <h2 class="text-xl font-bold mb-4">🖼️ Galeri Kegiatan</h2>
     <div class="grid grid-3">${(data||[]).map(g=>`
@@ -224,7 +224,7 @@ async function renderGallery() {
 async function renderCalendar() {
   const mc = document.getElementById('mainContent');
   mc.innerHTML = '<div class="spinner" style="margin:40px auto"></div>';
-  const { data } = await supabase.from('calendar_events').select('*').order('date');
+  const { data } = await db.from('calendar_events').select('*').order('date');
   const typeLabels = { holiday:'Libur', exam:'Ujian', event:'Event', meeting:'Rapat', other:'Lainnya' };
   const typeBadge = { holiday:'success', exam:'danger', event:'primary', meeting:'info', other:'outline' };
   mc.innerHTML = `
@@ -264,6 +264,11 @@ function renderProfile() {
       </div>
     </div>
   `;
+}
+
+function formatShortDate(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
 }
 
 init();
