@@ -49,7 +49,6 @@ function navigate(tab) {
   renderSidebar();
   document.getElementById('pageTitle').textContent = menuItems.find(m => m.id === tab)?.label || tab;
   
-  // Close mobile sidebar
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebarOverlay').classList.remove('open');
   
@@ -63,9 +62,9 @@ async function renderDashboard() {
   mc.innerHTML = '<div class="spinner" style="margin:40px auto"></div>';
   
   const [studentsRes, attendanceRes, assignmentsRes] = await Promise.all([
-    supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'student'),
-    supabase.from('attendance').select('id', { count: 'exact', head: true }).eq('status', 'present'),
-    supabase.from('assignments').select('id', { count: 'exact', head: true }),
+    db.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'student'),
+    db.from('attendance').select('id', { count: 'exact', head: true }).eq('status', 'present'),
+    db.from('assignments').select('id', { count: 'exact', head: true }),
   ]);
 
   mc.innerHTML = `
@@ -102,7 +101,7 @@ async function renderStudents() {
   const mc = document.getElementById('mainContent');
   mc.innerHTML = '<div class="spinner" style="margin:40px auto"></div>';
   
-  const { data: students } = await supabase.from('profiles').select('*').eq('role', 'student').order('full_name');
+  const { data: students } = await db.from('profiles').select('*').eq('role', 'student').order('full_name');
   
   mc.innerHTML = `
     <div class="flex items-center justify-between mb-4" style="flex-wrap:wrap;gap:12px">
@@ -147,7 +146,7 @@ function showStudentModal(id) {
       <div class="flex gap-2 mt-2"><button class="btn btn-primary" style="flex:1" onclick="saveStudent('${id || ''}')">💾 Simpan</button><button class="btn btn-outline" onclick="closeModal()">Batal</button></div>
     </div>
   `, id ? async () => {
-    const { data } = await supabase.from('profiles').select('*').eq('id', id).single();
+    const { data } = await db.from('profiles').select('*').eq('id', id).single();
     if (data) { document.getElementById('f_name').value = data.full_name||''; document.getElementById('f_email').value = data.email||''; document.getElementById('f_nisn').value = data.nisn||''; document.getElementById('f_phone').value = data.phone||''; document.getElementById('f_parent').value = data.parent_name||''; document.getElementById('f_address').value = data.address||''; }
   } : null);
 }
@@ -160,11 +159,11 @@ async function saveStudent(id) {
   const payload = { full_name: name, email, nisn: document.getElementById('f_nisn').value.trim() || null, phone: document.getElementById('f_phone').value.trim() || null, parent_name: document.getElementById('f_parent').value.trim() || null, address: document.getElementById('f_address').value.trim() || null, role: 'student' };
   
   if (id) {
-    const { error } = await supabase.from('profiles').update(payload).eq('id', id);
+    const { error } = await db.from('profiles').update(payload).eq('id', id);
     if (error) return showToast(error.message, 'error');
     showToast('Siswa berhasil diupdate!', 'success');
   } else {
-    const { error } = await supabase.from('profiles').insert([payload]);
+    const { error } = await db.from('profiles').insert([payload]);
     if (error) return showToast(error.message, 'error');
     showToast('Siswa berhasil ditambahkan!', 'success');
   }
@@ -173,7 +172,7 @@ async function saveStudent(id) {
 
 async function deleteStudent(id, name) {
   if (!confirm(`Hapus siswa "${name}"?`)) return;
-  const { error } = await supabase.from('profiles').delete().eq('id', id);
+  const { error } = await db.from('profiles').delete().eq('id', id);
   if (error) return showToast(error.message, 'error');
   showToast('Siswa berhasil dihapus!', 'success');
   renderStudents();
@@ -185,8 +184,8 @@ async function renderAttendance() {
   mc.innerHTML = '<div class="spinner" style="margin:40px auto"></div>';
   
   const today = new Date().toISOString().split('T')[0];
-  const { data: students } = await supabase.from('profiles').select('*').eq('role', 'student').order('full_name');
-  const { data: existingAttendance } = await supabase.from('attendance').select('*').eq('date', today);
+  const { data: students } = await db.from('profiles').select('*').eq('role', 'student').order('full_name');
+  const { data: existingAttendance } = await db.from('attendance').select('*').eq('date', today);
   
   const attendanceMap = {};
   (existingAttendance || []).forEach(a => { attendanceMap[a.student_id] = a.status; });
@@ -228,7 +227,7 @@ async function saveAllAttendance() {
   const records = Object.entries(tempAttendance).map(([student_id, status]) => ({ student_id, date, status }));
   if (records.length === 0) return showToast('Pilih status minimal 1 siswa!', 'error');
   
-  const { error } = await supabase.from('attendance').upsert(records, { onConflict: 'student_id,date' });
+  const { error } = await db.from('attendance').upsert(records, { onConflict: 'student_id,date' });
   if (error) return showToast(error.message, 'error');
   showToast(`${records.length} absensi berhasil disimpan!`, 'success');
 }
@@ -237,7 +236,7 @@ async function saveAllAttendance() {
 async function renderAssignments() {
   const mc = document.getElementById('mainContent');
   mc.innerHTML = '<div class="spinner" style="margin:40px auto"></div>';
-  const { data: assignments } = await supabase.from('assignments').select('*').order('due_date', { ascending: false });
+  const { data: assignments } = await db.from('assignments').select('*').order('due_date', { ascending: false });
   
   mc.innerHTML = `
     <div class="flex items-center justify-between mb-4"><p class="text-muted text-sm">${assignments?.length||0} tugas</p><button class="btn btn-primary" onclick="showAssignmentModal()">+ Buat Tugas</button></div>
@@ -273,7 +272,7 @@ function showAssignmentModal(id) {
       <div class="flex gap-2 mt-2"><button class="btn btn-primary" style="flex:1" onclick="saveAssignment('${id||''}')">💾 Simpan</button><button class="btn btn-outline" onclick="closeModal()">Batal</button></div>
     </div>
   `, id ? async () => {
-    const { data } = await supabase.from('assignments').select('*').eq('id', id).single();
+    const { data } = await db.from('assignments').select('*').eq('id', id).single();
     if (data) { document.getElementById('f_title').value=data.title; document.getElementById('f_subject').value=data.subject||''; document.getElementById('f_due').value=data.due_date?.split('T')[0]||''; document.getElementById('f_desc').value=data.description; }
   } : null);
 }
@@ -286,8 +285,8 @@ async function saveAssignment(id) {
   
   const payload = { title, description: desc, subject: document.getElementById('f_subject').value.trim()||null, due_date: new Date(due).toISOString(), created_by: currentProfile?.id };
   
-  if (id) { await supabase.from('assignments').update(payload).eq('id', id); showToast('Tugas diupdate!','success'); }
-  else { await supabase.from('assignments').insert([payload]); showToast('Tugas dibuat!','success'); }
+  if (id) { await db.from('assignments').update(payload).eq('id', id); showToast('Tugas diupdate!','success'); }
+  else { await db.from('assignments').insert([payload]); showToast('Tugas dibuat!','success'); }
   closeModal(); renderAssignments();
 }
 
@@ -296,8 +295,8 @@ async function renderGrades() {
   const mc = document.getElementById('mainContent');
   mc.innerHTML = '<div class="spinner" style="margin:40px auto"></div>';
   const [{ data: grades }, { data: students }] = await Promise.all([
-    supabase.from('grades').select('*, profiles(full_name)').order('created_at', { ascending: false }),
-    supabase.from('profiles').select('id, full_name').eq('role', 'student').order('full_name')
+    db.from('grades').select('*, profiles(full_name)').order('created_at', { ascending: false }),
+    db.from('profiles').select('id, full_name').eq('role', 'student').order('full_name')
   ]);
   
   const typeLabels = { daily: 'Harian', assignment: 'Tugas', mid_semester: 'UTS', final_semester: 'UAS' };
@@ -344,7 +343,7 @@ async function saveGrade() {
   const score = parseInt(document.getElementById('f_score').value);
   if (isNaN(score) || score < 0 || score > 100) return showToast('Nilai harus 0-100!','error');
   
-  const { error } = await supabase.from('grades').insert([{
+  const { error } = await db.from('grades').insert([{
     student_id: document.getElementById('f_student').value,
     subject: document.getElementById('f_subject').value,
     type: document.getElementById('f_type').value,
@@ -359,7 +358,7 @@ async function saveGrade() {
 async function renderMaterials() {
   const mc = document.getElementById('mainContent');
   mc.innerHTML = '<div class="spinner" style="margin:40px auto"></div>';
-  const { data } = await supabase.from('materials').select('*').order('created_at', { ascending: false });
+  const { data } = await db.from('materials').select('*').order('created_at', { ascending: false });
   mc.innerHTML = `
     <div class="flex items-center justify-between mb-4"><p class="text-muted text-sm">${data?.length||0} materi</p><button class="btn btn-primary" onclick="showMaterialModal()">+ Tambah Materi</button></div>
     <div class="grid grid-3">${(data||[]).map(m=>`
@@ -380,7 +379,7 @@ function showMaterialModal(id) {
       <div class="flex gap-2 mt-2"><button class="btn btn-primary" style="flex:1" onclick="saveMaterial('${id||''}')">💾 Simpan</button><button class="btn btn-outline" onclick="closeModal()">Batal</button></div>
     </div>
   `, id ? async () => {
-    const { data } = await supabase.from('materials').select('*').eq('id',id).single();
+    const { data } = await db.from('materials').select('*').eq('id',id).single();
     if(data){document.getElementById('f_title').value=data.title;document.getElementById('f_cat').value=data.category;document.getElementById('f_desc').value=data.description||'';document.getElementById('f_url').value=data.external_url||'';}
   } : null);
 }
@@ -389,15 +388,15 @@ async function saveMaterial(id) {
   const title = document.getElementById('f_title').value.trim();
   if(!title) return showToast('Judul wajib diisi!','error');
   const payload = { title, category: document.getElementById('f_cat').value, description: document.getElementById('f_desc').value.trim()||null, external_url: document.getElementById('f_url').value.trim()||null, created_by: currentProfile?.id };
-  if(id){await supabase.from('materials').update(payload).eq('id',id);showToast('Materi diupdate!','success');}
-  else{await supabase.from('materials').insert([payload]);showToast('Materi ditambahkan!','success');}
+  if(id){await db.from('materials').update(payload).eq('id',id);showToast('Materi diupdate!','success');}
+  else{await db.from('materials').insert([payload]);showToast('Materi ditambahkan!','success');}
   closeModal(); renderMaterials();
 }
 
 async function renderAnnouncements() {
   const mc = document.getElementById('mainContent');
   mc.innerHTML = '<div class="spinner" style="margin:40px auto"></div>';
-  const { data } = await supabase.from('announcements').select('*').order('created_at', { ascending: false });
+  const { data } = await db.from('announcements').select('*').order('created_at', { ascending: false });
   mc.innerHTML = `
     <div class="flex items-center justify-between mb-4"><p class="text-muted text-sm">${data?.length||0} pengumuman</p><button class="btn btn-primary" onclick="showAnnouncementModal()">+ Buat Pengumuman</button></div>
     <div class="flex flex-col gap-3">${(data||[]).map(a=>`
@@ -418,7 +417,7 @@ function showAnnouncementModal(id) {
       <div class="flex gap-2 mt-2"><button class="btn btn-primary" style="flex:1" onclick="saveAnnouncement('${id||''}')">💾 Simpan</button><button class="btn btn-outline" onclick="closeModal()">Batal</button></div>
     </div>
   `, id ? async () => {
-    const { data } = await supabase.from('announcements').select('*').eq('id',id).single();
+    const { data } = await db.from('announcements').select('*').eq('id',id).single();
     if(data){document.getElementById('f_title').value=data.title;document.getElementById('f_content').value=data.content;document.getElementById('f_pinned').checked=data.is_pinned;}
   } : null);
 }
@@ -428,15 +427,15 @@ async function saveAnnouncement(id) {
   const content = document.getElementById('f_content').value.trim();
   if(!title||!content) return showToast('Judul dan konten wajib!','error');
   const payload = { title, content, is_pinned: document.getElementById('f_pinned').checked, created_by: currentProfile?.id };
-  if(id){await supabase.from('announcements').update(payload).eq('id',id);showToast('Pengumuman diupdate!','success');}
-  else{await supabase.from('announcements').insert([payload]);showToast('Pengumuman dibuat!','success');}
+  if(id){await db.from('announcements').update(payload).eq('id',id);showToast('Pengumuman diupdate!','success');}
+  else{await db.from('announcements').insert([payload]);showToast('Pengumuman dibuat!','success');}
   closeModal(); renderAnnouncements();
 }
 
 async function renderGallery() {
   const mc = document.getElementById('mainContent');
   mc.innerHTML = '<div class="spinner" style="margin:40px auto"></div>';
-  const { data } = await supabase.from('gallery').select('*').order('created_at', { ascending: false });
+  const { data } = await db.from('gallery').select('*').order('created_at', { ascending: false });
   mc.innerHTML = `
     <div class="flex items-center justify-between mb-4"><p class="text-muted text-sm">${data?.length||0} item</p><button class="btn btn-primary" onclick="showGalleryModal()">+ Upload</button></div>
     <div class="grid grid-3">${(data||[]).map(g=>`
@@ -466,7 +465,7 @@ async function saveGalleryItem() {
   const title = document.getElementById('f_title').value.trim();
   const url = document.getElementById('f_url').value.trim();
   if(!title||!url) return showToast('Judul dan URL wajib!','error');
-  await supabase.from('gallery').insert([{ title, description: document.getElementById('f_desc').value.trim()||null, media_url: url, media_type: document.getElementById('f_type').value }]);
+  await db.from('gallery').insert([{ title, description: document.getElementById('f_desc').value.trim()||null, media_url: url, media_type: document.getElementById('f_type').value }]);
   showToast('Item galeri ditambahkan!','success');
   closeModal(); renderGallery();
 }
@@ -474,7 +473,7 @@ async function saveGalleryItem() {
 async function renderCalendar() {
   const mc = document.getElementById('mainContent');
   mc.innerHTML = '<div class="spinner" style="margin:40px auto"></div>';
-  const { data } = await supabase.from('calendar_events').select('*').order('date', { ascending: false });
+  const { data } = await db.from('calendar_events').select('*').order('date', { ascending: false });
   const typeLabels = { holiday:'Libur', exam:'Ujian', event:'Event', meeting:'Rapat', other:'Lainnya' };
   const typeBadge = { holiday:'success', exam:'danger', event:'primary', meeting:'info', other:'outline' };
   mc.innerHTML = `
@@ -509,14 +508,14 @@ async function saveEvent() {
   const title = document.getElementById('f_title').value.trim();
   const date = document.getElementById('f_date').value;
   if(!title||!date) return showToast('Judul dan tanggal wajib!','error');
-  await supabase.from('calendar_events').insert([{ title, date, type: document.getElementById('f_type').value, description: document.getElementById('f_desc').value.trim()||null }]);
+  await db.from('calendar_events').insert([{ title, date, type: document.getElementById('f_type').value, description: document.getElementById('f_desc').value.trim()||null }]);
   showToast('Event ditambahkan!','success');
   closeModal(); renderCalendar();
 }
 
 async function deleteItem(table, id, label) {
   if (!confirm(`Hapus ${label} ini?`)) return;
-  const { error } = await supabase.from(table).delete().eq('id', id);
+  const { error } = await db.from(table).delete().eq('id', id);
   if (error) return showToast(error.message, 'error');
   showToast(`${label} berhasil dihapus!`, 'success');
   navigate(activeTab);
@@ -536,6 +535,11 @@ function showModal(title, content, onLoad) {
 }
 
 function closeModal() { document.getElementById('modalContainer').innerHTML = ''; }
+
+function formatShortDate(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+}
 
 // ===== START =====
 init();
