@@ -53,11 +53,11 @@
       const password = document.getElementById('password').value;
       
       try {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await db.auth.signInWithPassword({ email, password });
         if (error) throw error;
         
         // Force set role to student
-        await supabase.from('profiles').update({ role: 'student' }).eq('user_id', data.user.id);
+        await db.from('profiles').update({ role: 'student' }).eq('user_id', data.user.id);
         
         showToast('Login berhasil! Selamat datang.', 'success');
         setTimeout(() => { window.location.href = '/dashboard/'; }, 500);
