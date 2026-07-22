@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>X-5 SMAN 1 Purbalingga</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar" id="navbar">
+    <div class="navbar-inner">
+      <a href="/" class="flex items-center gap-2">
+        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--primary),#a855f7);display:flex;align-items:center;justify-content:center;">🎓</div>
+        <div><div class="font-bold text-sm">X-5 SMAN 1</div><div class="text-xs text-muted" style="margin-top:-2px">Purbalingga</div></div>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="#about">About</a>
+        <a href="#stats">Stats</a>
+        <a href="#gallery">Gallery</a>
+        <a href="#contact">Contact</a>
+        <a href="/auth/login.html" class="btn btn-primary btn-sm" style="margin-left:8px">Login Siswa</a>
+        <a href="/auth/admin.html" class="btn btn-outline btn-sm">Admin</a>
+      </div>
+      <button class="hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero" id="home">
+    <div class="hero-bg">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+    </div>
+    <div class="hero-content">
+      <div class="hero-badge"><span class="dot"></span> Tahun Ajaran 2024/2025</div>
+      <h1>Kelas <span class="text-gradient">X-5</span><br>SMAN 1 Purbalingga</h1>
+      <p>Platform digital kelas premium untuk mengelola kehadiran, tugas, nilai, dan kegiatan kelas dengan teknologi modern.</p>
+      <div class="flex gap-3 justify-center" style="flex-wrap:wrap">
+        <a href="/auth/login.html" class="btn btn-gradient btn-lg">🚀 Mulai Sekarang</a>
+        <a href="#about" class="btn btn-outline btn-lg">📖 Pelajari Lebih</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section class="section text-center" id="about">
+    <div class="container">
+      <h2 class="section-title">Tentang <span class="text-gradient">Kelas Kami</span></h2>
+      <p class="section-desc">Kenali lebih dekat kelas X-5 SMAN 1 Purbalingga</p>
+      <div class="grid grid-2" style="max-width:800px;margin:0 auto">
+        <div class="card card-glow">
+          <div style="font-size:32px;margin-bottom:12px">👁️</div>
+          <h3 class="text-lg font-bold mb-2">Visi</h3>
+          <p class="text-sm text-muted">Menjadi kelas yang unggul dalam prestasi akademik dan non-akademik, berkarakter mulia, serta mampu bersaing di era global.</p>
+        </div>
+        <div class="card card-glow">
+          <div style="font-size:32px;margin-bottom:12px">🎯</div>
+          <h3 class="text-lg font-bold mb-2">Misi</h3>
+          <ul class="text-sm text-muted" style="text-align:left;list-style:none">
+            <li>⭐ Menciptakan lingkungan belajar kondusif</li>
+            <li>⭐ Mendorong semangat kompetisi positif</li>
+            <li>⭐ Mengembangkan kreativitas dan bakat</li>
+            <li>⭐ Membangun solidaritas kebersamaan</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card card-glow" style="max-width:800px;margin:24px auto 0">
+        <div style="font-size:32px;margin-bottom:12px">💪</div>
+        <h3 class="text-lg font-bold mb-2">Motto</h3>
+        <p class="text-xl font-bold text-gradient">"Bersama Kita Bisa, Bersama Kita Juara!"</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="section" id="stats">
+    <div class="container">
+      <div class="grid grid-4">
+        <div class="card stat-card card-glow"><div class="stat-icon" style="background:rgba(99,102,241,0.15);color:#818cf8">👥</div><div class="stat-value text-gradient">32</div><div class="stat-label">Total Siswa</div></div>
+        <div class="card stat-card card-glow"><div class="stat-icon" style="background:rgba(16,185,129,0.15);color:#34d399">✅</div><div class="stat-value text-gradient">95%</div><div class="stat-label">Kehadiran</div></div>
+        <div class="card stat-card card-glow"><div class="stat-icon" style="background:rgba(245,158,11,0.15);color:#fbbf24">🏆</div><div class="stat-value text-gradient">12</div><div class="stat-label">Prestasi</div></div>
+        <div class="card stat-card card-glow"><div class="stat-icon" style="background:rgba(59,130,246,0.15);color:#60a5fa">📚</div><div class="stat-value text-gradient">14</div><div class="stat-label">Mapel</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Officers -->
+  <section class="section text-center">
+    <div class="container">
+      <h2 class="section-title">Pengurus <span class="text-gradient">Kelas</span></h2>
+      <p class="section-desc">Tim yang memimpin dan mengorganisir kegiatan kelas</p>
+      <div class="grid grid-4">
+        <div class="card card-glow text-center"><div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,rgba(99,102,241,0.3),rgba(168,85,247,0.3));display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:28px">👑</div><h3 class="font-bold">Ahmad Rizky</h3><span class="badge badge-primary mt-2">Ketua Kelas</span></div>
+        <div class="card card-glow text-center"><div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,rgba(59,130,246,0.3),rgba(99,102,241,0.3));display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:28px">🤝</div><h3 class="font-bold">Siti Nurhaliza</h3><span class="badge badge-info mt-2">Wakil Ketua</span></div>
+        <div class="card card-glow text-center"><div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,rgba(16,185,129,0.3),rgba(59,130,246,0.3));display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:28px">📝</div><h3 class="font-bold">Dewi Lestari</h3><span class="badge badge-success mt-2">Sekretaris</span></div>
+        <div class="card card-glow text-center"><div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,rgba(245,158,11,0.3),rgba(239,68,68,0.3));display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:28px">💰</div><h3 class="font-bold">Budi Santoso</h3><span class="badge badge-warning mt-2">Bendahara</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Gallery -->
+  <section class="section text-center" id="gallery">
+    <div class="container">
+      <h2 class="section-title">Galeri <span class="text-gradient">Kegiatan</span></h2>
+      <p class="section-desc">Momen-momen berharga kelas X-5</p>
+      <div class="grid grid-3">
+        <div class="card card-glow" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font-size:48px">📸</span><p class="font-bold mt-2">Upacara Bendera</p><span class="badge badge-outline mt-1">Kegiatan</span></div>
+        <div class="card card-glow" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font-size:48px">📖</span><p class="font-bold mt-2">Study Group</p><span class="badge badge-outline mt-1">Akademik</span></div>
+        <div class="card card-glow" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font-size:48px">⚽</span><p class="font-bold mt-2">Class Meeting</p><span class="badge badge-outline mt-1">Olahraga</span></div>
+        <div class="card card-glow" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font-size:48px">🎂</span><p class="font-bold mt-2">Ulang Tahun Kelas</p><span class="badge badge-outline mt-1">Perayaan</span></div>
+        <div class="card card-glow" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font-size:48px">🎤</span><p class="font-bold mt-2">Presentasi Proyek</p><span class="badge badge-outline mt-1">Akademik</span></div>
+        <div class="card card-glow" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font-size:48px">🏖️</span><p class="font-bold mt-2">Liburan Bersama</p><span class="badge badge-outline mt-1">Rekreasi</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section class="section text-center" id="contact">
+    <div class="container">
+      <h2 class="section-title">Hubungi <span class="text-gradient">Kami</span></h2>
+      <p class="section-desc">Informasi kontak kelas X-5</p>
+      <div class="grid grid-4" style="max-width:900px;margin:0 auto">
+        <div class="card card-glow text-center"><span style="font-size:28px">📍</span><h3 class="font-bold mt-2 text-sm">Alamat</h3><p class="text-xs text-muted mt-1">Jl. Raya Purbalingga, Jawa Tengah</p></div>
+        <div class="card card-glow text-center"><span style="font-size:28px">📞</span><h3 class="font-bold mt-2 text-sm">Telepon</h3><p class="text-xs text-muted mt-1">(0281) 123456</p></div>
+        <div class="card card-glow text-center"><span style="font-size:28px">✉️</span><h3 class="font-bold mt-2 text-sm">Email</h3><p class="text-xs text-muted mt-1">x5@sman1pbg.sch.id</p></div>
+        <div class="card card-glow text-center"><span style="font-size:28px">🌐</span><h3 class="font-bold mt-2 text-sm">Website</h3><p class="text-xs text-muted mt-1">sman1purbalingga.sch.id</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>© 2024 X-5 SMAN 1 Purbalingga. All rights reserved.</p>
+    <p class="mt-2">Made with ❤️ by Kelas X-5</p>
+  </footer>
+
+  <script>
+    // Navbar scroll effect
+    window.addEventListener('scroll', () => {
+      document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
+    });
+  </script>
+</body>
+</html>
